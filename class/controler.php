@@ -13,7 +13,8 @@ $data[] = trim(md5($_POST['senha']));
 
 $query = "SELECT * FROM users WHERE email = ? AND password = ?";
 $valid_log = conecta()->prepare($query);
-$valid_log->execute($data) or die(print_r($erro = $valid_log->errorInfo()));
+$erro = $valid_log->errorInfo();
+$valid_log->execute($data);
 $row = $valid_log->fetch();
 $result = $valid_log->rowCount();
 

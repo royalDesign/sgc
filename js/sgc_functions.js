@@ -58,12 +58,16 @@ beforeSubmit:         function(){
 },
 resetForm:        true,
 error:              function(resposta){
+  console.log('Desculpa, aconteceu um erro inesperado.'+resposta);
+
           new PNotify({
           title: 'Erro!',
           text: 'Desculpa, aconteceu um erro inesperado.'+resposta,
           type: 'error'
           
           });
+
+
 },
 success:        function(resposta){
   
@@ -114,7 +118,14 @@ function logar(){
 
 if(valid_fild('email',email) && valid_fild('required',senha)){
 
+
+//alert('passei na validação');
 send_form(form,btn,'logar');
+
+
+form.submit(function(event) {
+  return false
+});
 
 }else{
 
