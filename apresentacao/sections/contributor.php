@@ -410,8 +410,10 @@ $rows_leave = $search->fetchAll(PDO::FETCH_ASSOC);
           <div class="nav-tabs-custom">
             <ul class="nav nav-tabs">              
               <li class="active" id="control_cad"><a href="#cadastro" data-toggle="tab">Cadastro</a></li>
+              <?php if($_POST['id']): ?>
               <li id="control_lea"><a href="#leave" data-toggle="tab">Registros de férias</a></li>              
-              <li id="control_atu"><a href="#timeline" data-toggle="tab">Atualizações</a></li>              
+              <li id="control_atu"><a href="#timeline" data-toggle="tab">Atualizações</a></li>   
+              <?php endif; ?>           
             </ul>
       <div class="tab-content">
 
