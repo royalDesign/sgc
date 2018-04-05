@@ -305,6 +305,32 @@ $new_timeline = sgc_save_db('sgc_'.$user['customer_code'].'_contributors_updates
 
     
 }break;
+
+case 'save_leave':
+{
+	
+	$data = array();
+	$data['reference'] = trim($_POST['reference']);
+	$data['date_start'] = sgc_date_format($_POST['date_start'],'Y-m-d');
+	$data['date_end'] = sgc_date_format($_POST['date_end'],'Y-m-d');
+	$data['observations'] = trim($_POST['observations']);
+	$data['contributir_id'] = trim($_POST['id']);
+	$data['created_user'] = $user['id'];
+    $data['created_date'] = date('Y-m-d H:i:s');
+    $ret = sgc_save_db('sgc_'.$user['customer_code'].'_contributors_leave',$data, 0);
+
+    if (!$ret['error_number']) {
+    	echo "<script>new PNotify({title: 'Sucesso!',text: 'Dados salvos com sucesso.',type: 'success'});</script>";	
+    	echo "<script>$('#control_cad').removeClass('active'); $('#control_lea').addClass('active'); $('#leave').addClass('active'); $('#cadastro').removeClass('active');</script>";
+    	
+    }else{
+    	echo "<script>new PNotify({title: 'Error!',text: 'Não foi possível realizar esta operação.',type: 'error'});</script>";
+    }
+
+
+
+
+}break;
 	
 	
 }
@@ -353,10 +379,12 @@ $rows_marital_status = $search->fetchAll(PDO::FETCH_ASSOC);
 
 
 //Popula férias
-$query = "SELECT * FROM sgc_".$user['customer_code']."_contributors_leave";
+$query = "SELECT * FROM sgc_".$user['customer_code']."_contributors_leave WHERE contributir_id = :id";
 $search = conecta()->prepare($query);
+$search->bindValue(':id', $_POST['id']);
 $search->execute();
 $rows_leave = $search->fetchAll(PDO::FETCH_ASSOC);
+
 
 
 
@@ -381,9 +409,9 @@ $rows_leave = $search->fetchAll(PDO::FETCH_ASSOC);
         <div class="col-md-8">
           <div class="nav-tabs-custom">
             <ul class="nav nav-tabs">              
-              <li class="active"><a href="#cadastro" data-toggle="tab">Cadastro</a></li>
-              <li><a href="#leave" data-toggle="tab">Registros de férias</a></li>              
-              <li><a href="#timeline" data-toggle="tab">Atualizações</a></li>              
+              <li class="active" id="control_cad"><a href="#cadastro" data-toggle="tab">Cadastro</a></li>
+              <li id="control_lea"><a href="#leave" data-toggle="tab">Registros de férias</a></li>              
+              <li id="control_atu"><a href="#timeline" data-toggle="tab">Atualizações</a></li>              
             </ul>
       <div class="tab-content">
 
@@ -959,15 +987,27 @@ $rows_leave = $search->fetchAll(PDO::FETCH_ASSOC);
 
 <div class="col-sm-5">
         <div class="form-group">
-                <label>Período </label>
+                <label>Início</label>
                 <div class="input-group">
                   <div class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                   </div>
-                  <input type="text" class="form-control pull-right" id="reservation">
+                  
+                  <input type="text" class="form-control" id="date_start" name="date_start" value="" />
+                </div>                
+              </div>
+        </div><!-- /.input group -->
 
-                  <input type="hidden" id="date_start" name="date_start" value="" />
-                  <input type="hidden" id="date_end" name="date_end" value="" />
+
+
+<div class="col-sm-5">
+        <div class="form-group">
+                <label>Término</label>
+                <div class="input-group">
+                  <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                  </div>                  
+                  <input type="text" id="date_end" name="date_end" class="form-control" value="" />
                 </div>                
               </div>
         </div><!-- /.input group -->
@@ -1202,6 +1242,17 @@ language: 'br'
 });
 
 
+$('#date_start').datepicker({
+autoclose: true,
+language: 'br'
+});
+
+$('#date_end').datepicker({
+autoclose: true,
+language: 'br'
+});
+
+
 $('#reservation').daterangepicker({
 	"opens": "right",
     "showDropdowns": true,
@@ -1255,7 +1306,7 @@ var reference    	= $('#reference');
 var date_start   	= $('#date_start');
 var date_end   	  	= $('#date_end');
 var observations   	= $('#observations');
-var params 			= 'target=contributor&exec=save_contributor&'+form.serialize();
+var params 			= 'target=contributor&exec=save_leave&'+form.serialize();
 
 if(valid_fild('required',reference) && valid_fild('required',date_start) && valid_fild('required',date_end) && valid_fild('required',observations)){
 open_target(params,btn);
