@@ -108,15 +108,9 @@ exit;
 echo $retVal = (isset($_POST['name'])) ? "O formulário foi submetido com a palavra".$_POST['name'] : "O formulário ainda não foi enviado" ;
 ?>
 <section class="content">
-<form action="/sgc/site/apresentacao/sections/test.php" method="POST" accept-charset="utf-8">
-  <div class="row">
-    <div class="col-sm-4">
-      <div class="form-group">
-        <label for="name" class="label-control">Nome</label>
-        <input type="text" name="name" id="name" class="form-control" />
-        <button type="submit" class="btn btn-info">Enviar</button>
-      </div>
-    </div>
-  </div>
-</form>
+
+
+<script>
+  alert('Olá mundo');
+</script>
 </section>

@@ -268,6 +268,8 @@ if($row['name_img_profile']){
         </li>
 
 <li><a href="javascript:void(0)" onclick="open_target('target=test');"><i class="fa fa-list" aria-hidden="true"></i>Teste</a></li>
+<li><a href="javascript:void(0)" onclick="open_target('target=search_satisfactions');"><i class="fa fa-list" aria-hidden="true"></i>Pesquisa de satisfação</a></li>
+
       </ul>
       <!-- /.sidebar-menu -->
       
