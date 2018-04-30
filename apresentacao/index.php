@@ -2,6 +2,7 @@
 require_once "class/sgc_functions.php";
 if(empty($user)){
 echo"<script language='javascript'> window.location='../';</script>'";
+
 }
 
 

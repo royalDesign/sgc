@@ -73,6 +73,20 @@ return false;
 
 
 
+}else if(valid_type == 'int'){
+
+var number = field.val();
+
+var filter_int = /^.$/;
+if(parseInt(number) <= 0 || !filter_int.test(number)){
+
+ field.focus();    
+new PNotify({title: 'Número inválido!',text: 'Informe um número inteiro maior que 0',type: 'error'});
+return false;
+}else{ return true;}
+
+
+
 }
 
 
@@ -396,6 +410,12 @@ function sgc_masc_fild(evt, campo, padrao) {
            }  
            return true;  
       }
+      
+      
+function sgc_toggle(element){
+    $('#'+element).toggle('fast');
+    
+}
 
 
 

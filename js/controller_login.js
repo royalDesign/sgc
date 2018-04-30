@@ -1,3 +1,4 @@
+/*
 $(function(){
 	
 	var form 		= $('form[name="login"]');

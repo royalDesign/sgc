@@ -1,4 +1,5 @@
 <?php 
+
 /*
 function conecta(){ 
    //CONEXAO OFLLINE
@@ -104,13 +105,34 @@ exit;
 
       
 <!-- Main content -->
-<?php 
-echo $retVal = (isset($_POST['name'])) ? "O formulário foi submetido com a palavra".$_POST['name'] : "O formulário ainda não foi enviado" ;
-?>
 <section class="content">
+<?php
+/*
+$sql = "show tables";
+$resp = conecta()->prepare($sql);
+$resp->execute();
+
+$retorno = $resp->fetchAll(PDO::FETCH_ASSOC);
 
 
-<script>
-  alert('Olá mundo');
-</script>
+
+foreach ($retorno as $ret): 
+
+$sql = "show create table ".$ret['Tables_in_sgc'];
+$resp = conecta()->prepare($sql);
+$resp->execute();
+$create = $resp->fetch(PDO::FETCH_ASSOC);
+
+//$sql = str_replace('apresentacao', 'demonstracao', $create['Create Table']);
+//$resp = conecta()->prepare($sql);
+//$resp->execute();
+*/
+
+?>
+
+
+<p><?php //echo str_replace('apresentacao', 'demonstracao', $create['Create Table']) ;?></p>
+
+<?php //endforeach; ?>
+
 </section>

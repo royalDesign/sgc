@@ -2,12 +2,11 @@
 date_default_timezone_set('America/Sao_Paulo');
 session_start();
 $user = array();
+
 if(!empty($_SESSION)){
 
    foreach ($_SESSION as $key => $value) {
-      $user[$key] = $value;
-   }
-   
+      $user[$key] = $value;      
 }
 
 function conecta(){ 
@@ -107,10 +106,15 @@ return $ret;
 
  function sgc_date_format($var_date,$format){
 
+if($var_date){
 $var_date = str_replace("/", "-", $var_date);
 $var_date = date($format, strtotime($var_date));
    
 return $var_date;
+}else{
+
+  return '';
+}
 
  }
 
@@ -245,6 +249,6 @@ return $valor;
 }
 
 
-
-
+}
 ?>
+

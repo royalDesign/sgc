@@ -116,7 +116,7 @@ function logar(){
   var btn = $('#j_send');
   
 
-if(valid_fild('email',email) && valid_fild('required',senha)){
+if(valid_fild('required',email) && valid_fild('required',senha)){
 
 
 //alert('passei na validação');

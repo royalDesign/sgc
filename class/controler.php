@@ -9,9 +9,10 @@ case 'logar':
 {
 $data = array();
 $data[] = strip_tags(trim($_POST['email']));
+$data[] = strip_tags(trim($_POST['email']));
 $data[] = trim(md5($_POST['senha']));
 
-$query = "SELECT * FROM users WHERE email = ? AND password = ?";
+$query = "SELECT * FROM users WHERE (email = ? OR username = ?) AND password = ?";
 $valid_log = conecta()->prepare($query);
 $erro = $valid_log->errorInfo();
 $valid_log->execute($data);

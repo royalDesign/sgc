@@ -113,7 +113,7 @@ function delete_itens_list(){
 
 if(!check_item.is(':checked')){
 new PNotify({title: 'Nenhum item selecionado!',text: 'Selecione o item da lista que deseja excluir.',type: 'error'});
-}else{ $('#confirm_delete').slideDown('slow'); }
+}else{ $('#confirm_delete').toggle('slow'); }
 }//end delete_itens_list
 
 
