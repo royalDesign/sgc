@@ -1,0 +1,15 @@
+Array
+(
+    [exec] => sgc_save_view_questions
+    [total_questions] => 4
+    [current_question] => 4
+    [type_question_1] => 3
+    [opttext_1] => uma uma
+    [type_question_2] => 4
+    [oprtextarea_2] => duas duas
+    [type_question_3] => 1
+    [optionsRadios_3] => 2
+    [type_question_4] => 2
+    [optcheckbox_4] => 4
+    [response_array_4] => 2,3,4
+)

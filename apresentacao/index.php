@@ -5,6 +5,12 @@ echo"<script language='javascript'> window.location='../';</script>'";
 
 }
 
+if(isset($_SESSION['locked_pesquisa']) && $_SESSION['locked_pesquisa']){
+    //exit(require_once 'sections/locked_search_satisfaction.php');
+    echo"<script language='javascript'> window.location='sections/locked_search_satisfaction.php';</script>'";
+}
+
+
 
 $query = "SELECT u.*,m.name AS name_img_profile,m.type  FROM users AS u LEFT JOIN sgc_".$user['customer_code']."_medias AS m ON m.user_id = u.id WHERE u.id = :id AND m.mode_name = 'img_profile_user' ORDER BY m.id DESC";
 $search = conecta()->prepare($query);

@@ -163,7 +163,7 @@ if (!empty($_POST['exec'])) {
                 $retorno = '';
                 if (count($ret) > 0) {
                     $retorno .= '<div class="form-group">';
-                    $retorno .= '<select name="select_user" onchange="user_selected(this);" id="select_user" class="form-control" style="margin-top: 15px;">';
+                    $retorno .= '<select name="select_user" multiple onchange="user_selected(this);" id="select_user" class="form-control" style="margin-top: 15px;">';
                     $retorno .= '<option value="">--Selecione--</option>';
 
                     foreach ($ret as $key => $value) {
@@ -175,7 +175,7 @@ if (!empty($_POST['exec'])) {
                     echo "<script>new PNotify({title: 'Ops',text: 'Nenhum usuário localizado.',type: 'info'});</script>";
                 }
                 exit($retorno);
-            }//end case
+            }break;//end case
 
 
         case 'set_user_view_satisfaction': {
@@ -190,13 +190,29 @@ if (!empty($_POST['exec'])) {
                 $ret = sgc_save_db('sgc_' . $user['customer_code'] . '_search_satisfactions_acl', $data, 0);
 
                 if (!$ret['error_number']) {
-                    echo "<script>new PNotify({title: 'Sucesso!',text: 'Dados salvos com sucesso.',type: 'success'});</script>";
+                    echo "<script>new PNotify({title: 'Sucesso!',text: 'Pesmissão para visualização adicionada com sucesso.',type: 'success'});</script>";
                     echo "<script>$('#control_cad').removeClass('active'); $('#control_permissions').addClass('active'); $('#permissions').addClass('active'); $('#cadastro').removeClass('active');</script>";
                 } else {
                     echo "<script>new PNotify({title: 'Ops!',text: 'Não foi possível realizar esta operação.',type: 'error'});</script>";
                     echo "<script>$('#control_cad').removeClass('active'); $('#control_permissions').addClass('active'); $('#permissions').addClass('active'); $('#cadastro').removeClass('active');</script>";
                 }
-            }//end Case
+            }break; //end Case
+            
+        case 'remove_user_permissions':
+        {
+            $data_del = array();
+            $data_del[] = strip_tags(trim($_POST['id']));
+            $data_del[] = strip_tags(trim($_POST['id_user_del']));
+            $query = "DELETE FROM sgc_".$user['customer_code']."_search_satisfactions_acl WHERE search_satisfaction_id = ? AND user_id = ?";
+            $pst = conecta()->prepare($query);
+            $ret = $pst->execute($data_del);           
+        
+           if($ret){
+             echo "<script>new PNotify({title: 'Sucesso!',text: 'Pesmissão para visualização removida com sucesso',type: 'success'});</script>";
+             echo "<script>$('#control_cad').removeClass('active'); $('#control_permissions').addClass('active'); $('#permissions').addClass('active'); $('#cadastro').removeClass('active');</script>";  
+           }
+           
+        }break;//END case
     }
 }
 
@@ -217,7 +233,7 @@ $rows_timeline = $search->fetchAll(PDO::FETCH_ASSOC);
 
 //select dos usuários individuais com permições
 $id = trim(strip_tags($_POST['id']));
-$query = "SELECT a.id,a.name FROM users AS a LEFT JOIN sgc_apresentacao_search_satisfactions_acl AS sc ON sc.user_id = a.id WHERE sc.search_satisfaction_id = ? AND a.customer_code = ? GROUP BY a.id ORDER BY a.name";
+$query = "SELECT a.id,a.name,sc.user_id FROM users AS a LEFT JOIN sgc_apresentacao_search_satisfactions_acl AS sc ON sc.user_id = a.id WHERE sc.search_satisfaction_id = ? AND a.customer_code = ? GROUP BY a.id ORDER BY a.name";
 $search = conecta()->prepare($query);
 $search->execute(array($id, $user['customer_code']));
 $rows_users_permissions = $search->fetchAll(PDO::FETCH_ASSOC);
@@ -328,10 +344,6 @@ $total_users_permissions = count($rows_users_permissions);
                         </form>
                     </div><!--END PANE CADASTRO -->
 
-
-
-
-
                     <div class="tab-pane" id="permissions">
                         <div class="box-body">
 
@@ -373,8 +385,8 @@ $total_users_permissions = count($rows_users_permissions);
                                 <?php foreach ($rows_users_permissions as $row_users_permissions): ?>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <p><span class="label label-info"><?php echo $row_users_permissions['name'] ?></span> <a href="javascript:void(0);" onclick="sgc_toggle('deleted_item_<?php echo $row_users_permissions['id'];?>')"><span class="label label-danger"><i class="fa fa-close"></i></span></a></p>
-                                            <p style="display: none;" id="deleted_item_<?php echo $row_users_permissions['id']?>"><a href="javascript:void(0)" onclick="confirm_remove_user_permissions(<?php echo $row_users_permissions['id'];?>);" class="text-danger" >Confirmar remoção deste usuário!</a></p>
+                                            <p><span class="label label-info"><?php echo $row_users_permissions['name'] ?></span> <a id="link_del_<?php echo $row_users_permissions['id'];?>" href="javascript:void(0);" onclick="sgc_toggle('deleted_item_<?php echo $row_users_permissions['id'];?>')"><span class="label label-danger"><i class="fa fa-close"></i></span></a></p>
+                                            <p style="display: none;" id="deleted_item_<?php echo $row_users_permissions['id']?>"><a href="javascript:void(0)" onclick="confirm_remove_user_permissions(<?php echo $row_users_permissions['user_id'];?>,$(this));" class="text-danger" >Confirmar remoção deste usuário!</a></p>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -770,6 +782,14 @@ $total_users_permissions = count($rows_users_permissions);
         open_target(params);
 
     }
+    
+    function confirm_remove_user_permissions(id_del,obj){
+        
+        var params = 'target=search_satisfaction&exec=remove_user_permissions&id_user_del='+id_del+'&id=<?php echo $row['id'];?>';
+        open_target(params,obj);    
+    
+    }
+    
 
 
     $('#date_send').datepicker({

@@ -93,15 +93,25 @@ return $ret;
  }/*END dave_db*/
 
 
- function sgc_delete_db($tabela, $ids){
+ function sgc_delete_db($tabela, $ids, $where = ''){
+     
+     if(!$where){
+         
+        $sql = "DELETE FROM ".$tabela." WHERE id IN(".$ids.")";
+     }else{
+        $sql = "DELETE FROM ".$tabela." WHERE id IN(".$ids.") AND ".$where; 
+ 
+     }
 
-  $sql = "DELETE FROM ".$tabela." WHERE id IN(".$ids.")";
   $del = conecta()->prepare($sql);
   $del->execute();
 
   return $del->errorInfo();
 
  }
+ 
+ 
+ 
 
 
  function sgc_date_format($var_date,$format){
