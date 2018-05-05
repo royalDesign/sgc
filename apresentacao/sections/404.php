@@ -15,6 +15,7 @@ $ret = sgc_save_db('sgc_'.$user['customer_code'].'_access_locked', $data, 0);
         <p class="text-center">Você tentou acessar esta página de maneira indevida e está sendo monitorado.</p>
 			<hr class="text-danger">
 			<p><strong>Nome:</strong> <?php echo $user['name']?></p>
+			<p><strong>Data:</strong> <?php echo date('d/m/Y H:i:s')?></p>
 			<p><strong>Data:</strong> <?php echo date('d/m/Y H:i:s')?></p>      
   </div>
   </div>
