@@ -1,33 +1,65 @@
 <?php require_once "../class/sgc_functions.php"; ?>
 <?php
-    if (!empty($_POST['exec'])) {
-        switch ($_POST['exec']) {
+if (!empty($_POST['exec'])) {
+    switch ($_POST['exec']) {
 
-            case'sgc_save_view_questions': {
+        case'sgc_save_view_questions': {
+                $retorno = 'FAIL';
+                $cont_check = 0;
+                $data = array();
+                $data['survey_id'] = $_POST['question_id'];
+                $data['user_id'] = $user['id'];
+                $data['created_date'] = date('Y-m-d H:i:s');
+                $ret = sgc_save_db('sgc_' . $user['customer_code'] . '_survey_response', $data, 0);
 
-                $control = $_POST['total_questions'];
-                $arr = array();
-                for ($x=1;$x<=$control;$x++){
-                 $type = $_POST['type_question_'.$x];
-                 
-                 if($type == 2){
-                     $data_save = array();
-                     $data_save['question_type'] = $type;
-                     $data_save['question_selected'] = trim($_POST['response_radio_'.$x]);
-                     $data_save['question_text_selected'] = trim($_POST['text_options_save_'.$x]);
-                     $data_save['question_text'] = $_POST['pergunta_'.$x];
-                 }//fim tipo 2 radio
-                    
+                if (!$ret['error_number']) {
+                    $data = array();
+                    $data['survey_response_id'] = $ret['new_id'];
+
+                    for ($x = 1; $x <= $_POST['total_questions']; $x++) {
+                        $data['question_number'] = $x;
+                        $data['question_response'] = $_POST['q_' . $x];
+                        $ret = sgc_save_db('sgc_' . $user['customer_code'] . '_survey_response_acl', $data, 0);
+                        $cont_check++;
+                    }//for que salva as respostas
+                }//caso ocorra o salvamento da tabela principal
+
+
+                if ($cont_check == $_POST['total_questions']) {
+                    $query = "UPDATE sgc_" . $user['customer_code'] . "_search_satisfactions_acl SET view_date = ?, view_status = 2 WHERE user_id = ? AND search_satisfaction_id = ?";
+                    $up = conecta()->prepare($query);
+                    $ret_up = $up->execute(array(date('Y-m-d H:i:s'), $user['id'], $_POST['question_id']));
+
+                    if ($ret_up) {
+                        $_SESSION['locked_pesquisa'] = 0;
+                        $retorno = 'OK';
+                    } else {
+                        $retorno = 'FAIL';
+                    }
                 }
 
-                    exit(print_r($data_save));
-                    
-                    
-                }break;
-        }//end switch
-    }//end isset
 
- ?>
+
+                exit($retorno);
+            }break;
+    }//end switch
+}//end isset
+
+
+
+
+$query = "SELECT ss.title,ss.id,ss.number_questions FROM sgc_apresentacao_search_satisfactions AS ss LEFT JOIN sgc_apresentacao_search_satisfactions_acl AS sacl ON ss.id = sacl.search_satisfaction_id WHERE (DATE(?) BETWEEN DATE(ss.date_send) AND DATE(ss.date_limit)) AND sacl.user_id = ? AND sacl.view_status = 1 AND ss.status = 1";
+$pst = conecta()->prepare($query);
+$pst->execute(array(date('Y-m-d'), $user['id']));
+$res = $pst->fetch(PDO::FETCH_ASSOC);
+
+
+$query = "SELECT * FROM sgc_apresentacao_search_satisfactions_questions WHERE search_satisfactions_id = ?";
+$pst = conecta()->prepare($query);
+$pst->execute(array($res['id']));
+$rows_questions = $pst->fetchAll(PDO::FETCH_ASSOC);
+?>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -63,19 +95,7 @@
         <link rel="stylesheet" href="../bower_components/select2/dist/css/select2.css">
 
     </head>
-    
-<?php
-    $query = "SELECT ss.title,ss.id,ss.number_questions FROM sgc_apresentacao_search_satisfactions AS ss LEFT JOIN sgc_apresentacao_search_satisfactions_acl AS sacl ON ss.id = sacl.search_satisfaction_id WHERE (DATE(?) BETWEEN DATE(ss.date_send) AND DATE(ss.date_limit)) AND sacl.user_id = ? AND sacl.view_status = 1 AND ss.status = 1";
-    $pst = conecta()->prepare($query);
-    $pst->execute(array(date('Y-m-d'), $user['id']));
-    $res = $pst->fetch(PDO::FETCH_ASSOC);
 
-
-    $query = "SELECT * FROM sgc_apresentacao_search_satisfactions_questions WHERE search_satisfactions_id = ?";
-    $pst = conecta()->prepare($query);
-    $pst->execute(array($res['id']));
-    $rows_questions = $pst->fetchAll(PDO::FETCH_ASSOC);
-    ?>
 
     <body class="hold-transition lockscreen">
         <div class="col-sm-8 col-md-offset-2">
@@ -88,44 +108,44 @@
 
                         <input type="hidden" name="total_questions" id="total_questions" value="<?php echo $res['number_questions'] ?>" />
                         <input type="hidden" name="current_question" id="current_question" value="1"/>
-                        <input type="hidden" name="id_search_satisfaction" id="id_search_satisfaction" value="<?php echo $res['id'];?>" />
-<?php foreach ($rows_questions as $key => $value): ?>
-<input type="hidden" name="type_question_<?php echo $key + 1; ?>" id="type_question_<?php echo $key + 1; ?>" value="<?php echo $value['type']; ?>"/>
+                        <input type="hidden" name="id_search_satisfaction" id="id_search_satisfaction" value="<?php echo $res['id']; ?>" />
+                        <?php foreach ($rows_questions as $key => $value): ?>
+                            <input type="hidden" name="type_question_<?php echo $key + 1; ?>" id="type_question_<?php echo $key + 1; ?>" value="<?php echo $value['type']; ?>"/>
 
-    <?php
-    if (($value['type'] == 1 || $value['type'] == 2) && $value['questions']) {
-        $response_fild = json_decode($value['questions']);
-    }
-    ?>
-                            <div style="display: <?php echo ($key + 1 == 1) ? 'block' : 'none'; ?>" class="row question_complet_<?php echo $key + 1; ?>">
+                            <?php
+                            if (($value['type'] == 1 || $value['type'] == 2) && $value['questions']) {
+                                $response_fild = json_decode($value['questions']);
+                            }
+                            ?>
+                            <div style="display: <?php echo ($key + 1 == 1) ? 'block' : 'none'; ?>" class="row question_content question_complet_<?php echo $key + 1; ?>">
                                 <div class="col-sm-12">
                                     <h4><?php echo $value['content']; ?></h4>
-                                    
 
 
-                            <?php if ($value['type'] == 1): ?>
-                                <?php foreach ($response_fild AS $key_int => $values_questions): ?>
+
+                                    <?php if ($value['type'] == 1): ?>
+                                        <?php foreach ($response_fild AS $key_int => $values_questions): ?>
 
                                             <div class="radio">
                                                 <label>
-                                             <input name="optionsRadios_<?php echo $key + 1; ?>" id="optradios_<?php echo $key_int + 1; ?>" value="<?php echo $key_int + 1; ?>" type="radio">
-                                            <?php echo $values_questions; ?>
-                                             <input type="hidden" name="text_options_save_<?php echo $key_int+1;?>" value="<?php echo $values_questions; ?>"  />
+                                                    <input name="optionsRadios_<?php echo $key + 1; ?>" id="optradios_<?php echo $key_int + 1; ?>" value="<?php echo $key_int + 1; ?>" type="radio">
+                                                    <?php echo $values_questions; ?>
+                                                    <input type="hidden" name="text_options_save_<?php echo $key_int + 1; ?>" value="<?php echo $values_questions; ?>"  />
                                                 </label>
                                             </div>                  
-                                            <?php endforeach; ?>
+                                        <?php endforeach; ?>
 
-                                            <?php elseif ($value['type'] == 2): ?>
-                                                <?php foreach ($response_fild AS $key_int => $values_questions): ?>
+                                    <?php elseif ($value['type'] == 2): ?>
+                                        <?php foreach ($response_fild AS $key_int => $values_questions): ?>
                                             <div class="checkbox">
                                                 <label>
-                   <input type="hidden" name="pergunta_<?php echo $key+1;?>" value="<?php echo $value['content']; ?>"  />
+                                                    <input type="hidden" name="pergunta_<?php echo $key + 1; ?>" value="<?php echo $value['content']; ?>"  />
                                                     <input type="checkbox" name="optcheckbox_<?php echo $key + 1; ?>" value="<?php echo $key_int + 1; ?>">
-                                                   <?php echo $values_questions; ?>
+                                                    <?php echo $values_questions; ?>
                                                 </label>
                                             </div>
-        <?php endforeach; ?>
-    <?php elseif ($value['type'] == 3): ?>
+                                        <?php endforeach; ?>
+                                    <?php elseif ($value['type'] == 3): ?>
 
                                         <input class="form-control" placeholder="Informe sua resposta" type="text" name="opttext_<?php echo $key + 1; ?>" id="opttext_<?php echo $key + 1; ?>">
 
@@ -133,12 +153,12 @@
 
                                         <textarea name="oprtextarea_<?php echo $key + 1; ?>" id="oprtextarea_<?php echo $key + 1; ?>" placeholder="Informe sua resposta" rows="5" class="form-control"></textarea>
 
-    <?php endif; ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 
 
-                                <?php endforeach; ?>
+                        <?php endforeach; ?>
                     </form>
                     <p id="text_alert" class="text-danger"></p>
                 </div>
@@ -153,6 +173,8 @@
         </div>
 
         <script>
+
+
             function sgc_btn_next() {
                 var current_question = $('#current_question').val();
                 var type = $('#type_question_' + current_question).val();
@@ -160,12 +182,13 @@
                 var increment = 1;
                 var valid = false;
 
+
                 if (type == 1) {
 
                     var radiochecked = $("input[name='optionsRadios_" + current_question + "']:checked").val();
                     if (radiochecked) {
                         valid = true;
-  $('form[name="question_responses"]').append('<input name="response_radio_'+current_question+'" id="response_radio_'+current_question+'" value="'+radiochecked+'" type="hidden">');
+
                     } else {
                         $('#text_alert').text('Sua resposta é muito importante para nós.');
                     }
@@ -178,7 +201,7 @@
 
                     if (checkbox != '') {
                         valid = true;
-$('form[name="question_responses"]').append('<input name="response_array_'+current_question+'" id="response_array_'+current_question+'" value="'+checkbox+'" type="hidden">');
+                        $('form[name="question_responses"]').append('<input name="response_array_' + current_question + '" id="response_array_' + current_question + '" value="' + checkbox + '" type="hidden">');
                     } else {
                         $('#text_alert').text('Sua resposta é muito importante para nós.');
                     }
@@ -216,29 +239,76 @@ $('form[name="question_responses"]').append('<input name="response_array_'+curre
                             $('#text_alert').empty().removeClass('text-danger').addClass('text-success').html('<i class="fa fa-check"></i> Obrigado por sua resposta, você será redirecionado ao sistema! <i id="load_save_resp"></i>');
 
 
-                            var form = $('form[name="question_responses"]');
-                            var params = 'exec=sgc_save_view_questions&' + form.serialize();
+
+                            var value = 1;
+                            var send_data = 'total_questions=' + $('#total_questions').val() + '&question_id=<?php echo $res['id']; ?>&';
+                            $('.question_content').each(function () {
+                                var type = parseInt($('#type_question_' + value).val());
+                                switch (type) {
+
+                                    case 1:
+                                        {
+                                            var radiochecked = $("input[name='optionsRadios_" + value + "']:checked").val();
+                                            send_data += 'q_' + value + '=' + radiochecked + '&';
+                                        }
+                                        break;
+                                    case 2:
+                                        {
+                                            var checkbox = new Array();
+                                            $("input[type=checkbox][name='optcheckbox_" + value + "']:checked").each(function () {
+                                                checkbox.push($(this).val());
+                                            });
+                                            send_data += 'q_' + value + '=' + checkbox + '&';
+                                        }
+                                        break;
+                                    case 3:
+                                        {
+                                            var text_resp = $('#opttext_' + value).val();
+                                            send_data += 'q_' + value + '=' + text_resp + '&';
+                                        }
+                                        break;
+                                    case 4:
+                                        {
+                                            var textarea_resp = $('#oprtextarea_' + value).val();
+                                            send_data += 'q_' + value + '=' + textarea_resp + '&';
+                                        }
+                                        break;
+                                }
+
+
+
+                                //console.log('tipo '+type);
+                                value++;
+
+                            });
+
+
+                            send_data += 'exec=sgc_save_view_questions';
 
                             $.ajax({
 
                                 url: 'locked_search_satisfaction.php',
                                 type: 'post',
                                 dataType: 'html',
-                                data: params,
+                                data: send_data,
                                 error: function (retorno) {
                                     console.log('erro inesperado' + retorno);
                                 },
 
                                 beforeSend: function () {
                                     $('#load_save_resp').html('<img src="../img/load_b.svg" width="18px">');
+                                    $('#btn_next').slideUp('fast');
+                                    $('#btn_prev').slideUp('fast');
                                 },
 
                                 success: function (retorno) {
 
-                                    console.log(retorno);
+                                    
                                     $('#load_save_resp').empty();
-                                    $('#btn_next').fadeOut('fast');
-                                    $('#btn_prev').fadeOut('fast');
+                                    if($.trim(retorno) === 'OK'){
+                                        window.location.href = "../";
+                                    }
+                                    
                                 },
 
                                 complete: function () {
